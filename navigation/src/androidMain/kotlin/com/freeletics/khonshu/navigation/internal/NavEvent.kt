@@ -2,6 +2,7 @@ package com.freeletics.khonshu.navigation.internal
 
 import android.os.Parcelable
 import com.freeletics.khonshu.navigation.ActivityRoute
+import com.freeletics.khonshu.navigation.BaseRoute
 import com.freeletics.khonshu.navigation.ContractResultOwner
 import com.freeletics.khonshu.navigation.NavRoot
 import com.freeletics.khonshu.navigation.NavRoute
@@ -31,21 +32,27 @@ public sealed interface NavEvent {
     ) : NavEvent
 
     @InternalNavigationApi
-    public object UpEvent : NavEvent
+    public data object UpEvent : NavEvent
 
     @InternalNavigationApi
-    public object BackEvent : NavEvent
+    public data object BackEvent : NavEvent
 
     @InternalNavigationApi
     @Poko
     public class BackToEvent(
-        internal val popUpTo: DestinationId<*>,
+        internal val popUpTo: DestinationId<out BaseRoute>,
         internal val inclusive: Boolean,
     ) : NavEvent
 
     @InternalNavigationApi
     @Poko
     public class ResetToRoot(
+        internal val root: NavRoot,
+    ) : NavEvent
+
+    @InternalNavigationApi
+    @Poko
+    public class ReplaceAll(
         internal val root: NavRoot,
     ) : NavEvent
 

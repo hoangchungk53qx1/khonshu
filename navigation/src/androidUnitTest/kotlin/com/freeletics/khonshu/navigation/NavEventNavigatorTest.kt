@@ -2,6 +2,7 @@ package com.freeletics.khonshu.navigation
 
 import androidx.activity.result.contract.ActivityResultContracts
 import app.cash.turbine.test
+import com.freeletics.khonshu.navigation.Navigator.Companion.navigateBackTo
 import com.freeletics.khonshu.navigation.internal.DestinationId
 import com.freeletics.khonshu.navigation.internal.NavEvent
 import com.freeletics.khonshu.navigation.internal.NavEvent.NavigateToActivityEvent
@@ -145,6 +146,25 @@ internal class NavEventNavigatorTest {
     }
 
     @Test
+    fun `replaceAll event is received`(): Unit = runBlocking {
+        val navigator = TestNavigator()
+
+        navigator.navEvents.test {
+            navigator.replaceAll(
+                root = SimpleRoot(1),
+            )
+
+            assertThat(awaitItem()).isEqualTo(
+                NavEvent.ReplaceAll(
+                    root = SimpleRoot(1),
+                ),
+            )
+
+            cancel()
+        }
+    }
+
+    @Test
     fun `navigateForResult event is received`(): Unit = runBlocking {
         val navigator = TestNavigator()
 
@@ -247,9 +267,7 @@ internal class NavEventNavigatorTest {
             navigator.testRegisterForActivityResult(ActivityResultContracts.GetContent())
         }
         assertThat(exception).hasMessageThat().isEqualTo(
-            "Failed to register for " +
-                "result! You must call this before this navigator gets attached to a " +
-                "fragment, e.g. during initialisation of your navigator subclass.",
+            "Failed to register for result! You must call this before NavigationSetup is called with this navigator.",
         )
     }
 
@@ -263,9 +281,7 @@ internal class NavEventNavigatorTest {
             navigator.testRegisterForPermissionResult()
         }
         assertThat(exception).hasMessageThat().isEqualTo(
-            "Failed to register for " +
-                "result! You must call this before this navigator gets attached to a " +
-                "fragment, e.g. during initialisation of your navigator subclass.",
+            "Failed to register for result! You must call this before NavigationSetup is called with this navigator.",
         )
     }
 
@@ -279,9 +295,7 @@ internal class NavEventNavigatorTest {
             navigator.testRegisterForNavigationResult<SimpleRoute, TestParcelable>()
         }
         assertThat(exception).hasMessageThat().isEqualTo(
-            "Failed to register for " +
-                "result! You must call this before this navigator gets attached to a " +
-                "fragment, e.g. during initialisation of your navigator subclass.",
+            "Failed to register for result! You must call this before NavigationSetup is called with this navigator.",
         )
     }
 }

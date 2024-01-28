@@ -1,16 +1,101 @@
 Change Log
 ==========
 
-## 0.18.1 **UNRELEASED**
+## 0.22.0 **UNRELEASED**
+
+### Navigation
+
+- **Breaking**: `NavDestination`, `ScreenDestination`, `OverlayDestination`, `ActivityDestination`
+  and `NavigationSetup` have been moved to the `com.freeletics.khonshu.navigation` package inside
+  `navigation`. Previously these were duplicated between `navigation-compose` and `navigation-experimental`.
+- **Breaking**: Moved `navigation-compose` `NavHost` to `com.freeletics.khonshu.navigation.androidx` and
+  `navigation-experimental` `NavHost` to `com.freeletics.khonshu.navigation`. This now allows to use
+  the AndroidX based and the experimental navigation implementation in the same app and switch between
+  them with a feature flag.
+- **Removed**: `navigation-fragment` and `Fragment` navigation support.
+- **Removed**: `navigation-androidx` has been inlined into `navigation-compose`.
+
+### Codegen
+
+- **Breaking**: The `NavDestination` and `NavHostActivity` annotations as well as `SimpleNavHost`
+  have been moved to `com.freeletics.khonshu.codegen`.
+- **Added**: `NavHostActivity` has an `experimentalNavigation` boolean to generate code
+  with a `navigation-experimental` `NavHost`.
+- **Added**: `ActivityScope` and custom `Activity` scopes can now be used as `parentScope` for
+  destinations.
+- **Removed**: `@ComposeFragmentDestination` and `Fragment` codegen support.
+
+
+## 0.21.0 *(2023-12-07)*
+
+- **Note**: `Fragment` navigation and codegen have been deprecated and will be
+  removed in the next release.
+- Updated Kotlin to 1.9.21.
+
+### Navigation
+
+- **Breaking**: `navigateBackTo<...>(...)` is now an extension method and might need
+  to be explicitly imported.
+- **Breaking**: The `Set` parameters of `NavHost` have been replaced with `ImmutableSet`
+  to allow the compose compiler to recognize these as immutable.
+- **Breaking**: Removed `navController` parameter from `HavHost`. Passing a manually
+  created `NavHostController` introduced issues like breaking deep link handling.
+- **New**: `NavHost` (both the AndroidX and the experimental variant) now supports
+  optionally passing a `NavEventNavigator`. This can be used instead of
+  `navController` to navigate from outside the `NavHost` (e.g. for bottom navigation).
+  The `NavHost` takes care of calling `NavigationSetup` for the passed navigator.
+- **New**: `NavHost` from `navigation-experimental` now also supports passing a
+  Modifier to it.
+- **New**: The AndroidX `NavHost` will internally call `Navigation.setViewNavController`
+  on the container `View`. This exists primarily for an easier migration from `Fragment`
+  navigation to Compose navigation.
+
+### Codegen
+
+- **New**: The `NavHostActivity` codegen now supports passing a `Modifier` to `NavHost`.
+- **New**: The `NavHostActivity` codegen automatically provides an `ImmutableSet` for
+  destinations, deep link handlers and deep link prefixes.
+
+
+## 0.20.0 *(2023-11-17)*
+
+### Navigation
+
+- **New** Add `Modifier` parameter to `NavHost` Composable.
+- **New** Add `NavHost` overloaded function that accepts `NavRoute` instead of `NavRoot`
+- **New** Add optional `transitionAnimations` parameter to `NavHost` Composable functions. Animations
+can be overriden with `NavHostDefaults.transitionAnimations` or disabled with
+`NavHostTransitionAnimations.noAnimations`. Default animations are the same as default animations
+in AndroidX's `NavHost`.
+
+
+## 0.19.0 *(2023-11-09)*
+
+### Navigation
+
+- **New**: Allow passing an already created `NavController` to `NavHost`. This allows controlling
+  the navigation from outside the host, for example from a bottom bavigation or navigation drawer.
+- **Fixed**: A crash that happened in `NavHost` on re-compositions.
+- Improved how nav events are collected internally.
+
+Thanks to @hoc081098 and @hoangchungk53qx1 for the contributions.
+
+### Codegen
+
+- **New**: Added an `Overlay` marker interface that can be added to routes to indicate
+  to the code generation that this should use an `OverlayDestination` (`DialogDestination` for
+  Fragments).
+- **Breaking**: Removed `destinationType` in favor of the new interface.
+- **Breaking**: Removed support for `@RendererDestination`.
 
 
 ## 0.18.0 *(2023-10-19)*
 
 ### Navigation
 
-- **New**: `com.freeletics.khonshu.deeplinks` Gradle plugin that generates AndroidManifest 
+- **New**: `com.freeletics.khonshu.deeplinks` Gradle plugin that generates AndroidManifest
   `intent-filters` based on definitions from  a `toml` file
-- **New**: The navigation-testing artifact now ships with 
+- **New**: The navigation-testing artifact now ships with
   `DeepLinkDefinitions.containsAllDeepLinks(Set<DeepLinkHandler>)` which checks that the
   deep links defined in the `toml` are match the given set of `DeepLinkHandlers`.
 - **Breaking**: All deep link related classes have been moved to the
@@ -43,7 +128,7 @@ Change Log
   which now have a better solution. In the beginning we saw the codegen and navigation as 2
   separate things but now the codegen is more of an add-on, so we decided to remove the standalone
   mode (codegen without navigation) for codegen.
-- The following 3 artifacts are now empty and will not be publihshed anymore from the next release
+- The following 3 artifacts are now empty and will not be published anymore from the next release
   onwards. They have been merged into `com.freeletics.khonshu:codegen-runtime` and depend on it
   to make updating easier.
     - `com.freeletics.khonshu:codegen-scope`

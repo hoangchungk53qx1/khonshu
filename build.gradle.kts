@@ -33,8 +33,6 @@ dependencyAnalysis {
                 // needed for compile testing
                 exclude(
                     "androidx.compose.runtime:runtime",
-                    "com.gabrielittner.renderer:renderer",
-                    "com.gabrielittner.renderer:connect",
                     "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
                     "org.jetbrains.kotlin:kotlin-compiler-embeddable",
                     "com.squareup.anvil:annotations-optional",
@@ -42,7 +40,7 @@ dependencyAnalysis {
                     ":codegen",
                     ":codegen-compiler",
                     ":navigation-compose",
-                    ":navigation-fragment",
+                    ":navigation-experimental",
                 )
             }
         }

@@ -1,13 +1,13 @@
 package com.freeletics.khonshu.codegen
 
-import com.freeletics.khonshu.codegen.codegen.util.composeDestination
-import com.freeletics.khonshu.codegen.codegen.util.composeOverlayDestination
-import com.freeletics.khonshu.codegen.codegen.util.composeScreenDestination
-import com.freeletics.khonshu.codegen.codegen.util.fragmentDestination
-import com.freeletics.khonshu.codegen.codegen.util.fragmentDialogDestination
-import com.freeletics.khonshu.codegen.codegen.util.fragmentScreenDestination
-import com.freeletics.khonshu.codegen.compose.DestinationType
-import com.freeletics.khonshu.codegen.fragment.DestinationType as FragmentDestinationType
+import com.freeletics.khonshu.codegen.util.androidxNavHost
+import com.freeletics.khonshu.codegen.util.experimentalNavHost
+import com.freeletics.khonshu.codegen.util.getComponent
+import com.freeletics.khonshu.codegen.util.getComponentFromRoute
+import com.freeletics.khonshu.codegen.util.navigationDestination
+import com.freeletics.khonshu.codegen.util.overlayDestination
+import com.freeletics.khonshu.codegen.util.screenDestination
+import com.squareup.anvil.compiler.internal.capitalize
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.TypeName
@@ -19,12 +19,10 @@ public sealed interface BaseData {
     public val scope: ClassName
     public val parentScope: ClassName
 
-    public val stateMachine: ClassName?
-    public val navigation: Navigation?
-}
+    public val stateMachine: ClassName
 
-public sealed interface ComposeData : BaseData {
-    override val stateMachine: ClassName
+    public val navigation: Navigation?
+
     public val stateParameter: ComposableParameter?
     public val sendActionParameter: ComposableParameter?
     public val composableParameter: List<ComposableParameter>
@@ -35,7 +33,7 @@ public data class ComposableParameter(
     public val typeName: TypeName,
 )
 
-public data class ComposeScreenData(
+public data class NavDestinationData(
     override val baseName: String,
     override val packageName: String,
 
@@ -44,15 +42,15 @@ public data class ComposeScreenData(
 
     override val stateMachine: ClassName,
 
-    override val navigation: Navigation.Compose,
+    override val navigation: Navigation,
 
     override val stateParameter: ComposableParameter?,
     override val sendActionParameter: ComposableParameter?,
     override val composableParameter: List<ComposableParameter>,
-) : ComposeData
+) : BaseData
 
 public data class NavHostActivityData(
-    override val baseName: String,
+    private val originalName: String,
     override val packageName: String,
 
     override val scope: ClassName,
@@ -62,82 +60,40 @@ public data class NavHostActivityData(
 
     public val activityBaseClass: ClassName,
 
+    val experimentalNavigation: Boolean,
     val navHostParameter: ComposableParameter,
     override val stateParameter: ComposableParameter?,
     override val sendActionParameter: ComposableParameter?,
     override val composableParameter: List<ComposableParameter>,
-) : ComposeData {
+) : BaseData {
     override val navigation: Navigation? = null
-}
 
-public sealed interface FragmentData : BaseData {
-    public val fragmentBaseClass: ClassName
-    override val navigation: Navigation.Fragment
-}
-
-public data class ComposeFragmentData(
-    override val baseName: String,
-    override val packageName: String,
-
-    override val scope: ClassName,
-    override val parentScope: ClassName,
-
-    override val stateMachine: ClassName,
-    override val fragmentBaseClass: ClassName,
-
-    override val navigation: Navigation.Fragment,
-
-    override val stateParameter: ComposableParameter?,
-    override val sendActionParameter: ComposableParameter?,
-    override val composableParameter: List<ComposableParameter>,
-) : ComposeData, FragmentData
-
-public data class RendererFragmentData(
-    override val baseName: String,
-    override val packageName: String,
-
-    override val scope: ClassName,
-    override val parentScope: ClassName,
-
-    override val stateMachine: ClassName,
-    public val factory: ClassName,
-    override val fragmentBaseClass: ClassName,
-
-    override val navigation: Navigation.Fragment,
-) : FragmentData
-
-public sealed interface Navigation {
-    public val route: ClassName
-    public val parentScopeIsRoute: Boolean
-    public val destinationClass: ClassName
-    public val destinationScope: ClassName
-    public val destinationMethod: MemberName?
-
-    public data class Compose(
-        override val route: ClassName,
-        override val parentScopeIsRoute: Boolean,
-        private val destinationType: DestinationType,
-        override val destinationScope: ClassName,
-    ) : Navigation {
-        override val destinationClass: ClassName = composeDestination
-
-        override val destinationMethod: MemberName = when (destinationType) {
-            DestinationType.SCREEN -> composeScreenDestination
-            DestinationType.OVERLAY -> composeOverlayDestination
-        }
+    override val baseName: String = when (experimentalNavigation) {
+        false -> originalName
+        true -> "Experimental${originalName.capitalize()}"
     }
 
-    public data class Fragment(
-        override val route: ClassName,
-        override val parentScopeIsRoute: Boolean,
-        private val destinationType: FragmentDestinationType,
-        override val destinationScope: ClassName,
-    ) : Navigation {
-        override val destinationClass: ClassName = fragmentDestination
+    val navHost: MemberName = when (experimentalNavigation) {
+        false -> androidxNavHost
+        true -> experimentalNavHost
+    }
+}
 
-        override val destinationMethod: MemberName = when (destinationType) {
-            FragmentDestinationType.SCREEN -> fragmentScreenDestination
-            FragmentDestinationType.DIALOG -> fragmentDialogDestination
-        }
+public data class Navigation(
+    val route: ClassName,
+    private val parentScopeIsRoute: Boolean,
+    private val overlay: Boolean,
+    val destinationScope: ClassName,
+) {
+    val destinationClass: ClassName = navigationDestination
+
+    val parentComponentLookup: MemberName = when (parentScopeIsRoute) {
+        false -> getComponent
+        true -> getComponentFromRoute
+    }
+
+    val destinationMethod: MemberName = when (overlay) {
+        false -> screenDestination
+        true -> overlayDestination
     }
 }

@@ -1,16 +1,13 @@
 package com.freeletics.khonshu.codegen
 
 import com.freeletics.khonshu.codegen.codegen.FileGenerator
-import com.freeletics.khonshu.codegen.parser.anvil.toComposeFragmentDestinationData
-import com.freeletics.khonshu.codegen.parser.anvil.toComposeScreenDestinationData
-import com.freeletics.khonshu.codegen.parser.anvil.toNavHostActivityData
-import com.freeletics.khonshu.codegen.parser.anvil.toRendererFragmentDestinationData
+import com.freeletics.khonshu.codegen.parser.toComposeScreenDestinationData
+import com.freeletics.khonshu.codegen.parser.toNavHostActivityData
 import com.google.auto.service.AutoService
 import com.squareup.anvil.compiler.api.AnvilContext
 import com.squareup.anvil.compiler.api.CodeGenerator
 import com.squareup.anvil.compiler.api.GeneratedFile
 import com.squareup.anvil.compiler.api.createGeneratedFile
-import com.squareup.anvil.compiler.internal.reference.classAndInnerClassReferences
 import com.squareup.anvil.compiler.internal.reference.topLevelFunctionReferences
 import java.io.File
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -29,22 +26,11 @@ public class KhonshuCodeGenerator : CodeGenerator {
         val compose = projectFiles
             .topLevelFunctionReferences(module)
             .flatMap {
-                listOfNotNull(
-                    it.toComposeScreenDestinationData(),
-                    it.toComposeFragmentDestinationData(),
-                    it.toNavHostActivityData(),
-                )
+                listOfNotNull(it.toComposeScreenDestinationData()) +
+                    it.toNavHostActivityData()
             }
 
-        val renderer = projectFiles
-            .classAndInnerClassReferences(module)
-            .mapNotNull {
-                it.toRendererFragmentDestinationData()
-            }
-
-        val data = compose.toList() + renderer
-
-        return data.map {
+        return compose.map {
             val file = FileGenerator().generate(it)
             createGeneratedFile(
                 codeGenDir = codeGenDir,
@@ -52,6 +38,6 @@ public class KhonshuCodeGenerator : CodeGenerator {
                 fileName = file.name,
                 content = file.toString(),
             )
-        }
+        }.toList()
     }
 }

@@ -9,9 +9,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 data class ScreenState(val number: Int)
 
 sealed interface ScreenAction {
-    object ScreenButtonClicked : ScreenAction
-    object DialogButtonClicked : ScreenAction
-    object BottomSheetButtonClicked : ScreenAction
+    data object ScreenButtonClicked : ScreenAction
+    data object DialogButtonClicked : ScreenAction
+    data object BottomSheetButtonClicked : ScreenAction
+    data object ReplaceAllButtonClicked : ScreenAction
 }
 
 class ScreenStateMachine @Inject constructor(
@@ -26,6 +27,7 @@ class ScreenStateMachine @Inject constructor(
             ScreenAction.ScreenButtonClicked -> navigator.navigateToScreen()
             ScreenAction.DialogButtonClicked -> navigator.navigateToDialog()
             ScreenAction.BottomSheetButtonClicked -> navigator.navigateToBottomSheet()
+            ScreenAction.ReplaceAllButtonClicked -> navigator.replaceAllWithNewRoot()
         }
     }
 }
